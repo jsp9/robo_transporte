@@ -73,6 +73,7 @@ Otra de las novedades que publicó la Agencia son las geometrías de líneas que
 *Líneas de transporte público. color proporcional al número de robos en el tramo*
 
 *Tramos con más robos por alcaldía*
+
 | Ruta                                                          | A la altura de :                  | Robos |
 | --------------------- | ------------------------------------------------------------- | --------------------------------- | ----- |
 | Iztapalapa            | R-53 Viaducto-Cabeza de Juárez                                | Avenida Universidad               | 77    |
