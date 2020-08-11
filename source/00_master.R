@@ -18,9 +18,9 @@ library(ggpmisc)
 library(plotly)
 
 
-source('source/lee_limplia_json.R')
+source('source/01_lee_limplia_json.R')
 
-source('source/procesa_lineas.R')
+source('source/02_procesa_lineas.R')
 
 source('source/analisis_exploratorio.R')
 

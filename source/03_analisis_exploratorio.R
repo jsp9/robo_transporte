@@ -4,6 +4,8 @@
 
 data@data$fields.fechainicio<-strptime(data@data$fields.fechainicio,'%Y-%m-%dT%H:%M:%S' )
 
+data@data$hora_dia<-hour(data@data$fields.fechainicio)
+
 puntos_horas<-split(data@data, hour(data@data$fields.fechainicio))
 for (i in 1:24){
   overlay <- stat_density2d(
@@ -28,30 +30,73 @@ for (i in 1:24){
 
 centroide_alcaldia<-aggregate(data= data@data, cbind(fields.lon, fields.lat)~fields.alcaldiahechos, mean)
 
-puntos_horas<-split(data@data, hour(data@data$fields.fechainicio))
+puntos_horas<-split(data@data, data@data$hora_dia)
 
 max_conteos<-max(unlist(lapply(puntos_horas, nrow)))
 
+shp_munis<-readOGR('/Users/pepe_opi/Downloads/889463674658_s/09_ciudaddemexico/conjunto de datos//', '09mun')
+
+shp_munis<-spTransform(shp_munis, CRS('+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 '))
+
+shp_munis@data$NOMGEO<-c('AZCAPOTZALCO',
+                    'COYOACAN',
+                    'CUAJIMALPA DE MORELOS',
+                    'GUSTAVO A MADERO',
+                    'IZTACALCO',
+                    'IZTAPALAPA',
+                    'LA MAGDALENA CONTRERAS',
+                    'MILPA ALTA',
+                    'ALVARO OBREGON',
+                    'TLAHUAC',
+                    'TLALPAN',
+                    'XOCHIMILCO',
+                    'BENITO JUAREZ',
+                    'CUAUHTEMOC',
+                    'MIGUEL HIDALGO',
+                    'VENUSTIANO CARRANZA'
+)
+
+
+shp_munis<-fortify(shp_munis, region = 'NOMGEO')
+
+names(shp_munis)[names(shp_munis)=='id']<-'fields.alcaldiahechos'
+
+
+shp_munis_data
+
+head(shp_munis)
+
+i<-1
+table(shp_munis$piece)
+
+
 for (i in 1:24){
-  puntos_horas[[i]]<-merge(centroide_alcaldia, aggregate(data=puntos_horas[[i]],
-                                                         datasetid~fields.alcaldiahechos,
-                                                         function(x) cbind(length(x))))
-  puntos_horas[[i]]<-rbind.data.frame(puntos_horas[[i]], data.frame(fields.alcaldiahechos=c('NA', 'NA'),
-                                                                    fields.lon=c(1000, 1000),
-                                                                    fields.lat=c(1000, 1000),
-                                                                    datasetid=c(0, max_conteos)))
+  puntos_horas[[i]]<-left_join(shp_munis, aggregate(data=puntos_horas[[i]],
+                                                    datasetid~fields.alcaldiahechos,
+                                                    function(x) cbind(length(x))))
+  puntos_horas[[i]]$datasetid[is.na(puntos_horas[[i]]$datasetid)]<-0.001
+  puntos_horas[[i]]<-rbind.data.frame(puntos_horas[[i]], data.frame(long=c(NA, NA),
+                                                                    lat=c(NA, NA),
+                                                                    order=c(nrow(shp_munis), nrow(shp_munis)),
+                                                                    hole=c(F, F),
+                                                                    piece=c(1, 1),
+                                                                    fields.alcaldiahechos=c(NA, NA),
+                                                                    group=c(NA, NA),
+                                                                            datasetid=c(0.001, max_conteos)))
   
-  mapa_datos<-ggmap(mapa_df,  extent = "normal", maprange=T)+
-    geom_point(data = puntos_horas[[i]],
-               aes(x = fields.lon, y = fields.lat,
-                   color=log(datasetid), size=log(datasetid)))+
+  mapa_datos<-ggplot()+
+    geom_polygon(data = puntos_horas[[i]],
+               aes(x = long, y = lat,group=fields.alcaldiahechos,
+                   color=log(datasetid), fill=log(datasetid)))+
     theme_void()+
     theme(legend.position = 'none')+
     scale_color_viridis()+
-    annotate('text',
-             x = min(bbox)+0.27,
-             y=max(bbox)-0.1,size=5,
-             label= paste('Número de robos en transporte público a las:', i, ':00 horas (', sum(puntos_horas[[i]]$datasetid), ' totales)'))
+    scale_fill_viridis()+
+    ggtitle(paste('Número de robos en transporte público a las:',
+                  i,
+                  ':00 horas (',
+                  floor(sum(puntos_horas[[i]]$datasetid[!duplicated(puntos_horas[[i]]$fields.alcaldiahechos)])),
+                  ' totales)'))
   ggsave(filename = paste0('./out/gif_conteos/mapa_', i, 'horas.png'), device = 'png',plot = mapa_datos) 
 }
 
