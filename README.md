@@ -74,7 +74,7 @@ Otra de las novedades que publicó la Agencia son las geometrías de líneas que
 
 *Tramos con más robos por alcaldía*
 
-| Ruta                                                          | A la altura de :                  | Robos |
+|Alcaldía               | Ruta                                                          | A la altura de                    |Robos  |
 | --------------------- | ------------------------------------------------------------- | --------------------------------- | ----- |
 | Iztapalapa            | R-53 Viaducto-Cabeza de Juárez                                | Avenida Universidad               | 77    |
 | Gustavo A. Madero     | Ruta 18.13                                                    | Avenida Centenario                | 46    |
